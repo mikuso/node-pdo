@@ -1,0 +1,20 @@
+{
+    "name": "node-pdo",
+    "version": "0.0.1",
+    "main": "app.js",
+    "author": "Gareth Hughes <g_npm@flamescape.com>",
+    "license": "ISC",
+    "description": "PHP's PDO for node.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/mikuso/node-pdo.git"
+    },
+    "keywords": [
+        "pdo",
+        "php"
+    ],
+    "bugs": {
+        "url": "https://github.com/mikuso/node-pdo/issues"
+    },
+    "homepage": "https://github.com/mikuso/node-pdo#readme"
+}
