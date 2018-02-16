@@ -3,14 +3,19 @@ const path = require('path');
 const EventEmitter = require('events');
 
 class PDO extends EventEmitter {
-    constructor() {
+    constructor(options) {
         super();
+
+        this.options = Object.assign({
+            phpPath: "php",
+            expandPlaceholders: true
+        }, options || {});
 
         this.buffer = null;
         this.idx = 0;
         this.jobs = [];
 
-        this.cp = child_process.spawn('php.exe', [path.resolve(__dirname, 'host.php')], {
+        this.cp = child_process.spawn(this.options.phpPath, [path.resolve(__dirname, 'host.php')], {
             cwd: __dirname,
             detatched: false,
             stdio: 'pipe',
@@ -79,7 +84,7 @@ class PDO extends EventEmitter {
         this.cp.stdin.end();
     }
 
-    expandParams(sql, params = []) {
+    expandPlaceholders(sql, params = []) {
         let idx = -1;
         let xparams = [];
         let xsql = sql.replace(/\?/g, () => {
@@ -110,17 +115,26 @@ class PDO extends EventEmitter {
     }
 
     async exec(sql, params) {
-        let {xsql, xparams} = this.expandParams(sql, params);
+        let {xsql, xparams} = this.options.expandPlaceholders ?
+            this.expandPlaceholders(sql, params) :
+            {sql, params};
+
         return this.send('exec', xsql, xparams);
     }
 
     async queryAll(sql, params) {
-        let {xsql, xparams} = this.expandParams(sql, params);
+        let {xsql, xparams} = this.options.expandPlaceholders ?
+            this.expandPlaceholders(sql, params) :
+            {sql, params};
+
         return this.send('queryAll', xsql, xparams);
     }
 
     async queryOne(sql, params) {
-        let {xsql, xparams} = this.expandParams(sql, params);
+        let {xsql, xparams} = this.options.expandPlaceholders ?
+            this.expandPlaceholders(sql, params) :
+            {sql, params};
+
         return this.send('queryOne', xsql, xparams);
     }
 
