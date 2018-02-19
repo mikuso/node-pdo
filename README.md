@@ -1,3 +1,5 @@
+![PHP + PDO + NodeJS](docs/logo.png)
+
 # PHP's PDO for node.js
 
 PHP's PDO has a wide range of database driver support.  This module brings PDO's functionality to node.
