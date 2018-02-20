@@ -1,8 +1,8 @@
 {
-    "name": "node-pdo",
+    "name": "pdo",
     "version": "0.0.4",
     "main": "app.js",
-    "author": "Gareth Hughes <g_npm@flamescape.com>",
+    "author": "flamescape <g_npm@flamescape.com>",
     "license": "ISC",
     "description": "PHP's PDO for node.js",
     "repository": {
