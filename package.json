@@ -11,7 +11,21 @@
     },
     "keywords": [
         "pdo",
-        "php"
+        "php",
+        "cubrid",
+        "mssql",
+        "firebird",
+        "ibm",
+        "informix",
+        "mysql",
+        "oracle",
+        "odbc",
+        "db2",
+        "postgresql",
+        "sqlite",
+        "4d",
+        "freetds",
+        "sybase"
     ],
     "bugs": {
         "url": "https://github.com/mikuso/node-pdo/issues"

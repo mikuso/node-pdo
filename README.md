@@ -1,14 +1,16 @@
 ![PHP + PDO + NodeJS](docs/logo.png)
 
-# PHP's PDO for node.js
+# A bridge for using PHP's PDO within NodeJS
 
-PHP's PDO has a wide range of database driver support.  This module brings PDO's functionality to node.
+PHP's PDO has a [wide range of database driver support](http://uk1.php.net/manual/en/pdo.drivers.php).  This module brings PDO's functionality to node.
 
 This module uses PHP under the hood, so requires PHP (>= 5.0.0) to be installed on the local system.
 
 Your `php.ini` must be configured to enable the PDO drivers you require.
 
 No other dependencies.
+
+Feature requests & bug reports are welcome.
 
 ## Install
 
@@ -61,9 +63,12 @@ This module only supports question mark placeholders at this time, but (unlike P
 
 Available options:
 
-`expandPlaceholders : bool` - should queries expand array and object paramters into multiple placeholders (default: true)
-
-`phpPath : string` - path to the PHP binary (default: 'php')
+* `expandPlaceholders : bool` - Should queries expand array and object paramters into multiple placeholders? (default: `true`)
+* `phpPath : string` - Path to the PHP binary. (default: `'php'`)
+* `closeCursorAfterExec : bool` - Automatically call closeCursor() on each statement after execution. Note: Some drivers require this. (default: `false`)
+* `stringifyFetches : bool` - Automatically convert all returned values into strings. Note: Some drivers will perform this conversion regardless of this setting. (default: `false`)
+* `emulatePrepares : bool` - Should PDO prefer to emulate prepared statements? Note: PDO will *always* emulate prepared statements when not natively supported by your driver. (default: `false`)
+* `timeoutSeconds : int` - A query timeout in seconds. Use `0` to disable. (default: `0`)
 
 #### PDO::open( dsn : string ) : Promise
 

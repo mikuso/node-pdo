@@ -8,7 +8,11 @@ class PDO extends EventEmitter {
 
         this.options = Object.assign({
             phpPath: "php",
-            expandPlaceholders: true
+            expandPlaceholders: true,
+            closeCursorAfterExec: false,
+            stringifyFetches: false,
+            emulatePrepares: false,
+            timeoutSeconds: 0
         }, options || {});
 
         this.buffer = null;
@@ -111,7 +115,7 @@ class PDO extends EventEmitter {
     }
 
     async open(connstr, ...more) {
-        return this.send('open', connstr, ...more);
+        return this.send('open', connstr, ...more, this.options);
     }
 
     async exec(sql, params) {

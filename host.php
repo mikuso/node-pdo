@@ -1,16 +1,30 @@
 <?php
 
 $db = null;
+$options = null;
 
 function dbOpen($connstr) {
     global $db;
+    global $options;
+
+    $args = func_get_args();
+    $options = array_pop($args);
+
     $db = new PDO($connstr);
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $db->setAttribute(PDO::ATTR_STRINGIFY_FETCHES, !!$options->stringifyFetches);
+    $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, !!$options->emulatePrepares);
+    if ($options->timeoutSeconds > 0) {
+        $db->setAttribute(PDO::ATTR_TIMEOUT, $options->timeout);
+    }
+
+
     return true;
 }
 
-function dbExec($sql, $params = array()) {
+function dbPrepareAndExec($sql, $params = array()) {
     global $db;
+
     if (!isset($db)) {
         throw new Exception("Database not connected");
     }
@@ -18,21 +32,40 @@ function dbExec($sql, $params = array()) {
     if (!$params) {
         $params = array();
     }
-    foreach ($params as $idx => $val) {
-        $stmt->bindValue($idx + 1, $val);
+    $stmt->execute($params);
+    return $stmt;
+}
+
+function dbExec($sql, $params = array()) {
+    global $options;
+
+    $stmt = dbPrepareAndExec($sql, $params);
+    if ($options->closeCursorAfterExec) {
+        $stmt->closeCursor();
     }
-    $stmt->execute();
     return $stmt;
 }
 
 function dbQueryOne($sql, $params = array()) {
-    $stmt = dbExec($sql, $params);
-    return $stmt->fetch(PDO::FETCH_OBJ);
+    global $options;
+
+    $stmt = dbPrepareAndExec($sql, $params);
+    $result = $stmt->fetch(PDO::FETCH_OBJ);
+    if ($options->closeCursorAfterExec) {
+        $stmt->closeCursor();
+    }
+    return $result;
 }
 
 function dbQueryAll($sql, $params = array()) {
-    $stmt = dbExec($sql, $params);
-    return $stmt->fetchAll(PDO::FETCH_OBJ);
+    global $options;
+
+    $stmt = dbPrepareAndExec($sql, $params);
+    $result = $stmt->fetchAll(PDO::FETCH_OBJ);
+    if ($options->closeCursorAfterExec) {
+        $stmt->closeCursor();
+    }
+    return $result;
 }
 
 function toNode($res) {
