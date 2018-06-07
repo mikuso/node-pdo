@@ -4,6 +4,8 @@
 
 PHP's PDO has a [wide range of database driver support](http://uk1.php.net/manual/en/pdo.drivers.php).  This module brings PDO's functionality to node.
 
+Requires NodeJS >= 4.9.1
+
 This module uses PHP under the hood, so requires PHP (>= 5.0.0) to be installed on the local system.
 
 Your `php.ini` must be configured to enable the PDO drivers you require.
@@ -21,7 +23,7 @@ npm i pdo
 ## Example Usage
 
 ```js
-const PDO = require('node-pdo');
+const PDO = require('pdo');
 
 const db = new PDO()
 await db.open(dsn);

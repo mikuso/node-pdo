@@ -1,3 +1,5 @@
+'use strict';
+
 const child_process = require('child_process');
 const path = require('path');
 const EventEmitter = require('events');
@@ -62,19 +64,24 @@ class PDO extends EventEmitter {
         return true;
     }
 
-    async send(cmd, ...params) {
-        let job = {idx: ++this.idx};
-        let prom = new Promise(function(resolve, reject){
-            job.resolve = resolve;
-            job.reject = reject;
+    send(/*cmd, ...params*/) {
+        return Promise.resolve().then(() => {
+            let params = Array.from(arguments);
+            let cmd = params.shift();
+
+            let job = {idx: ++this.idx};
+            let prom = new Promise(function(resolve, reject){
+                job.resolve = resolve;
+                job.reject = reject;
+            });
+            this.jobs.push(job);
+            const data = Buffer.from(JSON.stringify({idx: job.idx, cmd, params}));
+            let len = Buffer.alloc(4);
+            len.writeInt32LE(data.length);
+            this.write(len);
+            this.write(data);
+            return prom;
         });
-        this.jobs.push(job);
-        const data = Buffer.from(JSON.stringify({idx: job.idx, cmd, params}));
-        let len = Buffer.alloc(4);
-        len.writeInt32LE(data.length);
-        this.write(len);
-        this.write(data);
-        return prom;
     }
 
     write(data) {
@@ -88,7 +95,8 @@ class PDO extends EventEmitter {
         this.cp.stdin.end();
     }
 
-    expandPlaceholders(sql, params = []) {
+    expandPlaceholders(sql, params/* = []*/) {
+        if (params === undefined) params = [];
         let idx = -1;
         let xparams = [];
         let xsql = sql.replace(/\?/g, () => {
@@ -97,13 +105,14 @@ class PDO extends EventEmitter {
                 throw Error("Number of parameters doesn't match number of placeholders");
             }
             if (params[idx] instanceof Array) {
-                xparams.push(...params[idx]);
+                xparams.push.apply(xparams, params[idx]);
                 return Array(params[idx].length).fill('?').join(',');
             } else if (params[idx] instanceof Object) {
                 let qs = [];
-                for (let [k,v] of Object.entries(params[idx])) {
-                    qs.push(`${k} = ?`);
-                    xparams.push(v);
+                let paramsEntries = Object.keys(params[idx]).map(k => [k, params[idx][k]]);
+                for (let kv of paramsEntries) {
+                    qs.push(`${kv[0]} = ?`);
+                    xparams.push(kv[1]);
                 }
                 return qs;
             } else {
@@ -114,41 +123,54 @@ class PDO extends EventEmitter {
         return {xsql, xparams}
     }
 
-    async open(connstr, ...more) {
-        return this.send('open', connstr, ...more, this.options);
+    open(/*connstr, ...more*/) {
+        let args = Array.from(arguments);
+        args.unshift('open');
+        args.push(this.options);
+        return this.send.apply(this, args);
     }
 
-    async exec(sql, params) {
-        let {xsql, xparams} = this.options.expandPlaceholders ?
-            this.expandPlaceholders(sql, params) :
-            {sql, params};
+    exec(sql, params) {
+        return Promise.resolve().then(() => {
+            let x = this.options.expandPlaceholders ?
+                this.expandPlaceholders(sql, params) :
+                {xsql: sql, xparams: params};
 
-        return this.send('exec', xsql, xparams);
+            return this.send('exec', x.xsql, x.xparams);
+        });
     }
 
-    async queryAll(sql, params) {
-        let {xsql, xparams} = this.options.expandPlaceholders ?
-            this.expandPlaceholders(sql, params) :
-            {sql, params};
+    queryAll(sql, params) {
+        return Promise.resolve().then(() => {
+            let x = this.options.expandPlaceholders ?
+                this.expandPlaceholders(sql, params) :
+                {xsql: sql, xparams: params};
 
-        return this.send('queryAll', xsql, xparams);
+            return this.send('queryAll', x.xsql, x.xparams);
+        });
     }
 
-    async queryOne(sql, params) {
-        let {xsql, xparams} = this.options.expandPlaceholders ?
-            this.expandPlaceholders(sql, params) :
-            {sql, params};
+    queryOne(sql, params) {
+        return Promise.resolve().then(() => {
+            let x = this.options.expandPlaceholders ?
+                this.expandPlaceholders(sql, params) :
+                {xsql: sql, xparams: params};
 
-        return this.send('queryOne', xsql, xparams);
+            return this.send('queryOne', x.xsql, x.xparams);
+        });
     }
 
-    async query(sql, params) {
+    query(sql, params) {
         return this.queryAll(sql, params);
     }
 
-    async queryColumn(sql, params, column = 0) {
-        let res = Object.values(await this.queryOne(sql, params));
-        return res[column];
+    queryColumn(sql, params, column/* = 0*/) {
+        if (column === undefined) column = 0;
+        return this.queryOne(sql, params).then(function(result){
+            let keys = Object.keys(result);
+            if (!keys.length) return undefined;
+            return result[keys[0]];
+        });
     }
 }
 

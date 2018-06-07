@@ -5,6 +5,7 @@
     "author": "flamescape <g_npm@flamescape.com>",
     "license": "ISC",
     "description": "PHP's PDO for node.js",
+    "engines" : { "node" : ">=4.9.1" },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/mikuso/node-pdo.git"
