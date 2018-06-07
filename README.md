@@ -15,7 +15,7 @@ Feature requests & bug reports are welcome.
 ## Install
 
 ```
-npm i node-pdo
+npm i pdo
 ```
 
 ## Example Usage
